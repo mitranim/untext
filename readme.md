@@ -20,7 +20,7 @@ err = untext.UnmarshalString(`0001-02-03T04:05:06Z`, &inst)
 
 ## License
 
-https://en.wikipedia.org/wiki/WTFPL
+https://unlicense.org
 
 ## Misc
 
