@@ -8,15 +8,15 @@ Examples
 Decode individual values:
 
 	var num int64
-	err := untext.UnmarshalString(`10`, &num)
+	err := untext.Parse(`10`, &num)
 
 	var inst time.Time
-	err = untext.UnmarshalString(`0001-02-03T04:05:06Z`, &inst)
+	err = untext.Parse(`0001-02-03T04:05:06Z`, &inst)
 
 Decode slices:
 
 	var nums []int64
-	err = untext.UnmarshalSlice([]string{`10`, `20`}, &nums)
+	err = untext.ParseSlice([]string{`10`, `20`}, &nums)
 */
 package untext
 
@@ -34,7 +34,7 @@ Unmarshals arbitrary text into an arbitrary destination pointer. Supports a
 variety of "well-known" types out of the box, and falls back on
 `encoding.TextUnmarshaler`.
 */
-func UnmarshalBytes(input []byte, dest interface{}) error {
+func Unmarshal(input []byte, dest interface{}) error {
 	impl, _ := dest.(encoding.TextUnmarshaler)
 	if impl != nil {
 		err := impl.UnmarshalText(input)
@@ -50,14 +50,15 @@ func UnmarshalBytes(input []byte, dest interface{}) error {
 }
 
 /*
-Variant of `UnmarshalBytes` that accepts a string as input.
+Variant of `Unmarshal` that accepts a string as input.
 */
-func UnmarshalString(input string, dest interface{}) error {
-	return UnmarshalBytes(stringToBytesUnsafe(input), dest)
+func Parse(input string, dest interface{}) error {
+	return Unmarshal(stringToBytesUnsafe(input), dest)
 }
 
 var unmarshalerRtype = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 
+// TODO consider exposing in the API.
 func unmarshalRval(input []byte, rval reflect.Value) error {
 	if !rval.CanSet() {
 		return fmt.Errorf(`expected settable rval, got %v`, rval.Interface())
@@ -186,11 +187,11 @@ func maybeUnmarshalErr(input []byte, err error) error {
 var timeRtype = reflect.TypeOf(time.Time{})
 
 /*
-Unmarshals a slice of strings by calling `UnmarshalString` for each value. The
-destination must be a non-nil pointer to a slice. The element type determines
-the output type for `UnmarshalString`.
+Parses a slice of strings. The destination must be a non-nil pointer to a slice.
+Allocates a slice of the appropriate type and calls `Parse` for each element,
+passing the corresponding string from the input slice.
 */
-func UnmarshalSlice(inputs []string, dest interface{}) error {
+func ParseSlice(inputs []string, dest interface{}) error {
 	rval, err := settableSliceRval(dest)
 	if err != nil {
 		return err
@@ -199,7 +200,7 @@ func UnmarshalSlice(inputs []string, dest interface{}) error {
 	rval.Set(reflect.MakeSlice(rval.Type(), len(inputs), len(inputs)))
 
 	for i, input := range inputs {
-		err := UnmarshalString(input, rval.Index(i).Addr().Interface())
+		err := Parse(input, rval.Index(i).Addr().Interface())
 		if err != nil {
 			return err
 		}

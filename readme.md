@@ -12,11 +12,17 @@ See the full documentation at https://godoc.org/github.com/mitranim/untext.
 
 ```go
 var num int64
-err := untext.UnmarshalString(`10`, &num)
+err := untext.Parse(`10`, &num)
 
 var inst time.Time
-err = untext.UnmarshalString(`0001-02-03T04:05:06Z`, &inst)
+err = untext.Parse(`0001-02-03T04:05:06Z`, &inst)
 ```
+
+## Changelog
+
+### v0.1.3
+
+Breaking: use terms "unmarshal" for `[]byte` inputs and "parse" for `string` inputs. This conforms to the standard library naming conventions.
 
 ## License
 

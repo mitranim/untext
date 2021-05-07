@@ -9,12 +9,12 @@ import (
 /*
 TODO test more types.
 */
-func TestUnmarshalString(t *testing.T) {
+func TestParse(t *testing.T) {
 	{
 		var expected int64 = 10
 		var result int64
 
-		err := UnmarshalString(`10`, &result)
+		err := Parse(`10`, &result)
 		if err != nil {
 			t.Fatalf("%+v", err)
 		}
@@ -30,7 +30,7 @@ func TestUnmarshalString(t *testing.T) {
 		var expected time.Time = time.Date(1, 2, 3, 4, 5, 6, 0, time.UTC)
 		var result time.Time
 
-		err := UnmarshalString(`0001-02-03T04:05:06Z`, &result)
+		err := Parse(`0001-02-03T04:05:06Z`, &result)
 		if err != nil {
 			t.Fatalf("%+v", err)
 		}
@@ -46,12 +46,12 @@ func TestUnmarshalString(t *testing.T) {
 /*
 TODO test more types.
 */
-func TestUnmarshalSlice(t *testing.T) {
+func TestParseSlice(t *testing.T) {
 	{
 		var expected = []int64{10, 20}
 		var result []int64
 
-		err := UnmarshalSlice([]string{`10`, `20`}, &result)
+		err := ParseSlice([]string{`10`, `20`}, &result)
 		if err != nil {
 			t.Fatalf("%+v", err)
 		}
