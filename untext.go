@@ -1,7 +1,7 @@
 /*
 "Missing feature" of the Go packages `encoding` and `fmt`: unmarshal arbitrary
 text into an arbitrary value. Counterpart to the marshaling functionality of
-`fmt.Sprintf("%v")`.
+`fmt.Sprint`.
 
 Examples
 
@@ -29,6 +29,10 @@ import (
 	"unsafe"
 )
 
+// Missing part of the "encoding" package. Commonly implemented by various types
+// across various libraries. Automatically used by `Parse` if possible.
+type Parser interface{ Parse(string) error }
+
 /*
 Unmarshals arbitrary text into an arbitrary destination pointer. Supports a
 variety of "well-known" types out of the box, and falls back on
@@ -37,8 +41,7 @@ variety of "well-known" types out of the box, and falls back on
 func Unmarshal(input []byte, dest interface{}) error {
 	impl, _ := dest.(encoding.TextUnmarshaler)
 	if impl != nil {
-		err := impl.UnmarshalText(input)
-		return err
+		return impl.UnmarshalText(input)
 	}
 
 	rval, err := settableRval(dest)
@@ -49,10 +52,12 @@ func Unmarshal(input []byte, dest interface{}) error {
 	return unmarshalRval(input, rval)
 }
 
-/*
-Variant of `Unmarshal` that accepts a string as input.
-*/
+// Variant of `Unmarshal` that accepts a string as input.
 func Parse(input string, dest interface{}) error {
+	impl, _ := dest.(Parser)
+	if impl != nil {
+		return impl.Parse(input)
+	}
 	return Unmarshal(stringToBytesUnsafe(input), dest)
 }
 
@@ -184,7 +189,7 @@ func maybeUnmarshalErr(input []byte, err error) error {
 	return fmt.Errorf(`failed to unmarshal %q: %+v`, input, err)
 }
 
-var timeRtype = reflect.TypeOf(time.Time{})
+var timeRtype = reflect.TypeOf((*time.Time)(nil)).Elem()
 
 /*
 Parses a slice of strings. The destination must be a non-nil pointer to a slice.
@@ -235,9 +240,6 @@ func settableSliceRval(dest interface{}) (reflect.Value, error) {
 
 // Self-reminder about non-free conversions.
 func bytesToStringAlloc(bytes []byte) string { return string(bytes) }
-
-// Self-reminder about non-free conversions.
-func stringToBytesAlloc(input string) []byte { return []byte(input) }
 
 /*
 Allocation-free conversion. Reinterprets a byte slice as a string. Borrowed from

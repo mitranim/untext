@@ -1,3 +1,5 @@
+**Moved to https://github.com/mitranim/gg**. This repo is usable but frozen.
+
 ## Overview
 
 "Missing feature" of the Go packages `encoding` and `fmt`: unmarshal arbitrary
